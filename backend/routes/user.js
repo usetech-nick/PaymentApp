@@ -3,7 +3,7 @@ const router = express.Router();
 const { JWT_SECRET } = require("../config");
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
-const User = require("../db");
+const { User, Account } = require("../db");
 const { authMiddleware } = require("../middleware");
 
 //signup
@@ -39,12 +39,19 @@ router.post("/signup", async (req, res) => {
   });
   const userId = user._id;
 
+  await Account.create({
+    userId,
+    balance: 1 + Math.random() * 10000,
+  });
+
   const token = jwt.sign({ userId }, JWT_SECRET);
 
   res.json({
     message: "User created successfully !",
     token: token,
   });
+  console.log("JWT_SECRET used for signing:", JWT_SECRET);
+  console.log("Generated token:", token);
 });
 
 //signin
@@ -69,6 +76,8 @@ router.post("/signin", async (req, res) => {
       message: "Login successful!",
       token: token,
     });
+    console.log("JWT_SECRET used for signing:", JWT_SECRET);
+    console.log("Generated token:", token);
     return;
   }
   return res.status(411).json({
